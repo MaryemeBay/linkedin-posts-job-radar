@@ -1,4 +1,4 @@
-# Vacancy Radar
+# Linkedin Posts Job Radar
 
 **Find real job openings on LinkedIn without the noise.**
 
