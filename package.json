@@ -9,7 +9,8 @@
   },
   "files": [
     "build/",
-    "README.md"
+    "README.md",
+    "LICENSE"
   ],
   "scripts": {
     "clean": "rimraf build",

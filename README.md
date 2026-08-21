@@ -245,4 +245,6 @@ This fork reorganises the codebase around the intake pipeline, adds the
 relevance, agency and market screening described above, adds country and pay
 inference, replaces the saved flag with a triage verdict, renames the MCP tools,
 rebuilds the dashboard, and fixes the cross-process database clobbering.
-Licensed ISC, as the original.
+
+Licensed ISC, as the original — see [LICENSE](LICENSE), which carries both
+copyright lines.
