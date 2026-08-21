@@ -1,11 +1,29 @@
+<div align="center">
+
+<img src="icon.png" alt="" width="140" />
+
 # Linkedin Posts Job Radar
 
-**Find real job openings on LinkedIn without the noise.**
+**Find real job openings on LinkedIn without the noise**
 
-Ask your AI assistant to search LinkedIn. Linkedin Posts Job Radar scrapes the results,
-throws away everything that isn't an employer hiring in a market you care
-about, and gives you a dashboard to sort what's left into **Ok**, **Maybe** and
-**Not interested**.
+[![MCP Server](https://img.shields.io/badge/MCP-Server-1f6feb)](https://modelcontextprotocol.io)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.6-3178c6)](https://www.typescriptlang.org/)
+[![Playwright](https://img.shields.io/badge/Playwright-1.55-2ead33)](https://playwright.dev/)
+[![React](https://img.shields.io/badge/React-18.3-58c4dc)](https://react.dev/)
+[![Express](https://img.shields.io/badge/Express-5.1-303030)](https://expressjs.com/)
+[![Vite](https://img.shields.io/badge/Vite-6.0-a855f7)](https://vite.dev/)
+[![Tailwind CSS](https://img.shields.io/badge/Tailwind-3.4-38bdf8)](https://tailwindcss.com/)
+[![SQLite](https://img.shields.io/badge/SQLite-local-003b57)](https://sqlite.org/)
+[![License: ISC](https://img.shields.io/badge/License-ISC-yellow)](LICENSE)
+
+</div>
+
+---
+
+Ask your AI assistant to search LinkedIn. Linkedin Posts Job Radar scrapes the
+results, throws away everything that isn't an employer hiring in a market you
+care about, and gives you a dashboard to sort what's left into **Ok**,
+**Maybe** and **Not interested**.
 
 Everything stays on your machine. No accounts, no servers, no data leaving your
 laptop.
