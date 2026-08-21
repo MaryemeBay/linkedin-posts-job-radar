@@ -1,0 +1,123 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/*
+ * One palette, two themes. Every colour the app uses is defined here as an RGB
+ * triplet and consumed through the semantic Tailwind names in
+ * tailwind.config.js, so a component never hardcodes a light-only slate value.
+ */
+@layer base {
+  :root {
+    --canvas: 248 250 252;
+    --surface: 255 255 255;
+    --raised: 241 245 249;
+    --line: 226 232 240;
+    --ink: 15 23 42;
+    --muted: 71 85 105;
+    --faint: 148 163 184;
+    --brand: 37 99 235;
+    --brand-soft: 219 234 254;
+    color-scheme: light;
+  }
+
+  .dark {
+    --canvas: 9 12 20;
+    --surface: 20 25 37;
+    --raised: 30 37 53;
+    --line: 44 53 74;
+    --ink: 237 242 250;
+    --muted: 158 171 194;
+    --faint: 110 123 148;
+    --brand: 96 148 255;
+    --brand-soft: 30 51 96;
+    color-scheme: dark;
+  }
+
+  html {
+    -webkit-font-smoothing: antialiased;
+  }
+
+  body {
+    @apply bg-canvas text-ink font-sans;
+  }
+
+  /* Scrollbars that do not fight the dark theme. */
+  * {
+    scrollbar-color: rgb(var(--faint) / 0.5) transparent;
+    scrollbar-width: thin;
+  }
+
+  *::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+
+  *::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  *::-webkit-scrollbar-thumb {
+    background: rgb(var(--faint) / 0.45);
+    border: 3px solid transparent;
+    border-radius: 9999px;
+    background-clip: content-box;
+  }
+
+  *::-webkit-scrollbar-thumb:hover {
+    background: rgb(var(--faint) / 0.7);
+    background-clip: content-box;
+  }
+}
+
+@layer components {
+  /* Shared shape for every select, input and date field in the filter bar. */
+  .field {
+    @apply w-full rounded-lg border border-line bg-surface px-3 py-2 text-sm text-ink
+           transition-colors placeholder:text-faint
+           focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/25;
+  }
+
+  .field-label {
+    @apply mb-1.5 block text-[0.7rem] font-semibold uppercase tracking-wider text-faint;
+  }
+
+  /* Segmented control: one button per option, active option filled. */
+  .segment {
+    @apply flex rounded-lg border border-line bg-raised p-0.5;
+  }
+
+  .segment-item {
+    @apply flex-1 rounded-md px-2 py-1.5 text-xs font-medium text-muted transition-all
+           hover:text-ink;
+  }
+
+  .segment-item-active {
+    @apply bg-surface text-ink shadow-sm;
+  }
+
+  .chip {
+    @apply inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-medium;
+  }
+
+  .icon-button {
+    @apply grid h-9 w-9 place-items-center rounded-lg text-faint transition-colors
+           hover:bg-raised hover:text-ink disabled:opacity-40;
+  }
+}
+
+@layer utilities {
+  .line-clamp-8 {
+    display: -webkit-box;
+    -webkit-line-clamp: 8;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  .glass {
+    background: rgb(var(--surface) / 0.82);
+    backdrop-filter: blur(14px) saturate(180%);
+  }
+}

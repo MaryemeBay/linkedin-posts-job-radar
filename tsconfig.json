@@ -10,10 +10,17 @@
     "skipLibCheck": true,
     "resolveJsonModule": true,
     "outDir": "build",
-    "types": ["node"]
+    "types": [
+      "node"
+    ]
   },
-  "include": ["src/**/*.ts", "scripts/**/*.ts"],
-  "exclude": ["node_modules", "build", "dist"]
+  "include": [
+    "src/**/*.ts"
+  ],
+  "exclude": [
+    "node_modules",
+    "build",
+    "dist",
+    "src/viewer/app"
+  ]
 }
-
-

@@ -1,402 +1,248 @@
-<div align="center">
-  <img src="saitama-job-hunting.png" alt="Saitama Job Hunting" width="300"/>
-  
-  # LinkedIn Posts Hunter MCP Server
-  
-  **Automate LinkedIn job post searching and tracking with AI-powered assistance**
-  
-  [![MCP](https://img.shields.io/badge/MCP-Server-blue)](https://modelcontextprotocol.io)
-  [![TypeScript](https://img.shields.io/badge/TypeScript-5.9-blue)](https://www.typescriptlang.org/)
-  [![Playwright](https://img.shields.io/badge/Playwright-1.55-green)](https://playwright.dev/)
-  [![React](https://img.shields.io/badge/React-18.3-blue)](https://react.dev/)
-  [![Express](https://img.shields.io/badge/Express-5.1-green)](https://expressjs.com/)
-  [![Vite](https://img.shields.io/badge/Vite-7.1-purple)](https://vitejs.dev/)
-  [![TailwindCSS](https://img.shields.io/badge/TailwindCSS-3.4-cyan)](https://tailwindcss.com/)
-  
-  ---
-  
-  [![Ko-fi](https://img.shields.io/badge/Support%20me%20on-Ko--fi-FF5E5B?style=for-the-badge&logo=ko-fi&logoColor=white)](https://ko-fi.com/kevinweitgenant)
-  
-</div>
+# Vacancy Radar MCP
+
+An MCP server for running a narrow, high-signal job search on LinkedIn.
+
+LinkedIn's own search returns everything: open roles, people announcing they are
+available, course ads, newsletter roundups, and the same staffing-agency repost
+twenty times over. Vacancy Radar harvests posts for your search terms and then
+**screens every one on the way into the database**, so what you browse is
+employer vacancies in the markets you care about — and nothing else.
+
+Everything runs locally. Posts live in a SQLite file on your machine, the browser
+session is stored on disk, and no data leaves the computer.
 
 ---
 
-## 📖 Overview
+## What it does
 
-**LinkedIn Posts Hunter MCP** is a Model Context Protocol (MCP) server that provides tools for automating LinkedIn job post search and management through your AI assistant (Claude Desktop, Cursor, or other MCP-compatible clients).
+**Harvest** — Signs in to LinkedIn with Playwright, keeps the session, and
+scrapes post results for a keyword query across as many pages as you ask for.
 
-**Why LinkedIn Posts?** Job opportunities often appear in LinkedIn posts first, before they're posted on traditional job boards. By monitoring LinkedIn posts, you can discover opportunities earlier and get a competitive advantage in your job search.
+**Screen** — Each harvested post passes three gates before it is stored:
 
-### How it works:
+| Gate | Rejects |
+| --- | --- |
+| Relevance | Posts with no sign of an open role — commentary, roundups, course ads |
+| Author | First-person job-seeker posts, and staffing-agency reposts |
+| Market | Roles outside your allowed countries |
 
-**1. Authentication & Scraping**
-- The MCP server exposes a Playwright-based tool that your AI assistant can invoke to automate browser interactions with LinkedIn
-- First-time use requires logging into LinkedIn through a browser window to capture session cookies
-- These cookies are **stored locally on your computer** for persistent authentication
-- Once authenticated, your AI assistant can call the search tool with keywords (either from your conversation or suggested by the AI) to scrape job posts
+What survives arrives **unrated**, waiting for a verdict.
 
-**2. Local Data Storage**
-- All scraped posts are saved to a **local SQLite database** on your machine
-- The database stores post content, metadata (author, dates, engagement metrics), and tracking info (whether you've applied)
-- Your data never leaves your computer
+**Enrich** — Surviving posts get a **country** inferred from the post text and
+any **pay** the post quotes, both normalised into their own columns.
 
-**3. Visual Interface**
-- A separate tool launches a **React dashboard** that renders the scraped posts from your local database
-- **Visualize all your scraped posts** in table or card views with profile images and engagement metrics
-- **Track your applications** by marking posts as "applied" or "saved for later" directly in the UI
-- **Quick actions** let you filter, sort, and manage posts with point-and-click simplicity
-- Changes made in the React app are written to the local database. And changes made through MCP commands are reflected in the UI.
-
-**4. Dual Control**
-- You can manage posts through **either** the React UI **or** through MCP tools like `manage_posts` and `viewer_filters`
-- The React app updates via **polling**, so changes made through MCP commands are reflected in the UI
-- This gives you flexibility: use natural language commands with your AI assistant, or point-and-click in the dashboard
+**Triage** — A local React dashboard lists what got through. Rate each post
+**Ok**, **Maybe** or **Not interested**; the rating colours the card's accent
+rail, and a "Not interested" post dims until you hover it. Filter by verdict,
+market, keyword, pay and application status, in light or dark theme.
 
 ---
 
-## 🎬 Video Demo
+## Screening rules
 
-https://github.com/user-attachments/assets/93f32db4-9ecf-4438-889f-ebe95b5b17e9
+### Market allowlist
 
-**📹 [Watch Walkthrough](https://streamable.com/m6tvef?src=player-page-share)**
+`src/intake/market-policy.ts` holds the list. Edit `ALLOWED_COUNTRIES` to change
+which markets are accepted:
 
-*Watch the complete workflow from authentication to post management*
+```ts
+export const ALLOWED_COUNTRIES = [
+  'France',
+  'United Kingdom',
+  'Remote (Europe)',
+  'Remote (Worldwide)',
+]
+```
+
+A post is accepted when it names **any** allowed market, and rejected when it
+names countries and none of them is allowed. Posts whose location cannot be
+inferred are accepted — plenty of real listings state no location, and treating
+unknown as unwanted throws away real matches.
+
+Naming an unwanted country is not on its own disqualifying. A Paris role that
+mentions visa requirements for applicants from elsewhere is still a Paris role.
+
+### Location detection
+
+`src/intake/location.ts` recognises ~105 countries by name and by city, in
+English, French, German, Spanish and Portuguese, plus bracketed ISO code lists
+such as `Remote EU (CZ/EE/FI/PL/ES/SE)`.
+
+An **explicit location line wins outright**. When a post says `📍 Location:
+London, UK`, `Lieu : Paris`, or `Based in Lisbon`, that line decides the country
+and the rest of the post is ignored. This matters: a post headed
+`📍 Islamabad, Pakistan` that mentions London further down is an Islamabad role,
+and taking the union of both would sneak it past a London-only filter.
+
+Posts with no location line fall back to a scan of the whole text.
+
+### Relevance and agency detection
+
+`src/intake/relevance.ts`. Hiring intent is matched broadly, because plenty of
+real listings never use the word "hiring" — `Lead Data Analyst opportunity at
+HelloFresh in London` is a job post.
+
+Agency detection uses two signals:
+
+- **Wording** — `our client`, `on behalf of`, `confidential search`, `C2C`,
+  `W2`, `Outside IR35`, `umbrella`, `cabinet de recrutement`
+- **Author title** — Recruitment Consultant, Executive Recruiter, IT Recruiter,
+  Headhunter, Talent Sourcer, Staffing
+
+Titles that exist on both sides of the fence — plain "Recruiter", "Talent
+Acquisition", "People Partner" — never trigger a rejection on their own, and
+`Corporate Recruiter` is explicitly treated as in-house. An employer's own
+recruiter is exactly who you want to hear from.
+
+> **Contract roles are treated as agency.** `umbrella`, `Outside IR35` and `C2C`
+> almost always mark a third-party contract. If you want contract work, remove
+> those patterns from `AGENCY_BODY`.
+
+### Compensation parsing
+
+`src/intake/compensation.ts` classifies every currency figure by pay period and
+keeps it only when the amount is plausible for that period. That is what
+separates a `$2,000 welcome bonus` and `€12.50/day` meal vouchers from a real
+salary, and what keeps `$100/hour` while rejecting a bare `$100`. Funding
+rounds, ARR and follower counts are excluded by surrounding context.
+
+Handles `$128,470 - $208,770`, `96k€`, `£75k-£115k`, `110000USD-135000USD`,
+`USD 121125-163875/year`, `60,4K GBP/yr` (French decimal comma), `£830/day` and
+`$7,000/month`, normalising each to a single readable string.
 
 ---
 
-### 🎨 Diagram
+## Install
 
-<div align="center">
-  <img src="diagram.png" alt="LinkedIn MCP Architecture Diagram" width="800"/>
-  <p><em>System architecture showing components and their interactions</em></p>
-</div>
+Requires Node 18+.
+
+```bash
+npm run setup     # installs server and viewer dependencies, plus Chromium
+npm run build
+```
+
+Register the server with your MCP client:
+
+```json
+{
+  "mcpServers": {
+    "vacancy-radar": {
+      "command": "node",
+      "args": ["/absolute/path/to/vacancy-radar-mcp/build/main.js"],
+      "cwd": "/absolute/path/to/vacancy-radar-mcp"
+    }
+  }
+}
+```
+
+Restart the client, then ask it to authenticate. A browser window opens for you
+to log in once; the session is saved locally after that.
 
 ---
 
+## MCP tools
 
+| Tool | Purpose |
+| --- | --- |
+| `linkedin_session` | Log in, check session status, clear stored credentials |
+| `harvest_posts` | Harvest posts for a keyword query; reports how many were screened out and why |
+| `vacancies` | Read, count or delete vacancies — filter by keyword, market, pay, verdict or application status |
+| `dashboard_filters` | Drive the dashboard's filters from the conversation |
+| `open_dashboard` / `close_dashboard` | Run the dashboard on `localhost:7391` |
 
-## 🛠️ Available Tools
+`harvest_posts` reports its screening, so you can see what a query actually cost:
 
-This MCP server exposes **6 tools** that can be called from your AI assistant:
-
-### 1. `auth`
-Manage LinkedIn authentication with persistent session storage.
-
-**Parameters:**
-- `action`: `"authenticate"` | `"status"` | `"clear"`
-- `force_reauth`: boolean (optional)
-
-**Usage:**
 ```
-"Authenticate my LinkedIn account"
-"Check LinkedIn auth status"
-"Clear my LinkedIn credentials"
-```
-
-### 2. `search_posts`
-Search LinkedIn posts by keywords and save results to the database.
-
-**Parameters:**
-- `keywords`: string (e.g., "Python developer remote")
-- `pagination`: number (1-10, default: 3)
-- `headless`: boolean (default: false) - show the browser window (default: false)
-
-**Usage:**
-```
-"Search LinkedIn for 'AI engineer' jobs"
-"Find posts about 'React developer' with 5 pages"
-```
-
-### 3. `manage_posts`
-Read, update, or delete posts from the database with advanced filtering.
-
-**Parameters:**
-- `action`: `"read"` | `"update"` | `"delete"`
-- `ids`: number[] (optional)
-- `search_text`: string (optional)
-- `date_from`: string (YYYY-MM-DD, optional)
-- `date_to`: string (YYYY-MM-DD, optional)
-- `applied`: boolean (optional)
-- `limit`: number (1-50, default: 10)
-- `new_description`: string (for updates)
-- `new_keywords`: string (for updates)
-- `new_applied`: boolean (for updates)
-
-**Usage:**
-```
-"Show me posts I haven't applied to yet"
-"Delete all posts that arent about job opportunities"
-"Delete all posts that are only about senior-level positions"
-```
-
-### 4. `viewer_filters`
-Control the React UI filters programmatically from the AI conversation.
-
-**Parameters:**
-- `keyword`: string (optional)
-- `applied_status`: `"all"` | `"applied"` | `"not-applied"` (optional)
-- `start_date`: string (YYYY-MM-DD, optional)
-- `end_date`: string (YYYY-MM-DD, optional)
-- `ids`: string (comma-separated, optional)
-- `reset`: boolean (optional)
-
-**Usage:**
-```
-"Filter to show only unapplied posts"
-"Show posts from this week"
-"Reset all filters"
-```
-
-### 5. `start_viewer`
-Launch the React dashboard in your browser.
-
-**Usage:**
-```
-"Open the LinkedIn post viewer"
-"Start the dashboard"
-```
-
-### 6. `stop_viewer`
-Stop the running Vite development server.
-
-**Usage:**
-```
-"Close the viewer"
-"Stop the dashboard"
+9 new posts added, 3 duplicates skipped, 12 rejected as outside allowed markets,
+18 rejected as non-vacancy or agency posts
 ```
 
 ---
 
-## 📦 Installation
+## Triage model
 
-### Prerequisites
+Each post carries one `verdict`: unrated, `yes` (Ok), `maybe`, or `no` (not
+interested). Clicking the rating a post already holds clears it, so a mis-click
+is undone with a second click rather than a fourth button.
 
-- **Node.js** 18 or higher
-- **npm** (comes with Node.js)
-- A LinkedIn account
-- **Cursor IDE** or **Claude Desktop**
+`applied` is tracked separately — a verdict is what you think of the role, and
+`applied` is whether you acted on it.
 
----
+This replaced an earlier binary "saved" flag. The `saved` column is still in the
+schema as the migration source — previously saved posts came through as `yes` —
+but nothing reads or writes it now.
 
+## Command line
 
+```bash
+npm run viewer      # dashboard on :7391, without going through MCP
+npm run rederive    # recompute country and pay for stored posts
+npm run seed        # import posts from a scraped JSON export
+npm run typecheck
+```
 
+`npm run rederive -- --all` re-infers every row rather than only empty values —
+use it after editing a detector.
 
+The dashboard serves on port **7391**. Set `VACANCY_RADAR_PORT` to move it:
 
-### Method 1: Using mcp.json Configuration (Recommended) ⭐
+```bash
+VACANCY_RADAR_PORT=9090 npm run viewer
+```
 
-**Works for:** Cursor IDE and Claude Desktop
-
-This is the most reliable and widely-supported installation method.
-
-1. **Install globally:**
-   ```bash
-   npm install -g linkedin-posts-hunter-mcp
-   ```
-   
-2. **Add to your MCP configuration:**
-
-   **For Cursor IDE:**
-   
-   Open or create `mcp.json` at:
-   - **macOS/Linux:** `~/.cursor/mcp.json`
-   - **Windows:** `%USERPROFILE%\.cursor\mcp.json` (typically `C:\Users\YourName\.cursor\mcp.json`)
-   
-   Add this configuration:
-   ```json
-   {
-     "mcpServers": {
-       "linkedin-posts-hunter-mcp": {
-         "command": "linkedin-posts-hunter-mcp"
-       }
-     }
-   }
-   ```
-
-   **For Claude Desktop:**
-   
-   Open or create `claude_desktop_config.json` at:
-   - **macOS:** `~/Library/Application Support/Claude/claude_desktop_config.json`
-   - **Windows:** `%APPDATA%\Claude\claude_desktop_config.json`
-   
-   Add this configuration:
-   ```json
-   {
-     "mcpServers": {
-       "linkedin-posts-hunter-mcp": {
-         "command": "linkedin-posts-hunter-mcp"
-       }
-     }
-   }
-   ```
-
-3. **Restart your MCP client** (Cursor or Claude Desktop)
-
-That's it! No need to clone the repository or manage local builds.
+When the MCP client launches the server, put it in that server's `env` block so
+`open_dashboard` uses the same port.
 
 ---
 
-### Method 2: Local Development Setup
+## Layout
 
-For developers who want to modify the code or contribute:
+```
+src/
+  main.ts               MCP server: tool schemas and dispatch
+  commands/             One module per MCP tool
+  linkedin/
+    session/            Playwright login and credential storage
+    harvest/            Search crawler, URL building, post parsing
+  intake/               The screening pipeline
+    ingest.ts             Applies every gate, then writes
+    relevance.ts          Vacancy vs commentary vs agency
+    market-policy.ts      Country allowlist
+    location.ts           Country inference
+    compensation.ts       Pay parsing
+  store/
+    connection.ts       SQLite handle, schema, migrations
+    posts-repository.ts Queries
+  viewer/
+    routes.ts           Dashboard HTTP API
+    handlers.ts
+    app/                React dashboard (separate Vite project)
+  platform/             Paths and persisted view state
+scripts/                Standalone maintenance scripts
+```
 
-1. **Clone and install dependencies:**
-   ```bash
-   git clone https://github.com/kevin-weitgenant/LinkedIn-Posts-Hunter-MCP-Server.git
-   cd LinkedIn-Posts-Hunter-MCP-Server
-   npm run install:all
-   npm run build
-   ```
+Data lives in `~/.linkedin-mcp/`: `auth.json` for the session and
+`resources/linkedin.db` for posts.
 
-2. **Add to your MCP configuration:**
+### A note on concurrency
 
-   **For Cursor IDE** (`mcp.json`):
-   ```json
-   {
-     "mcpServers": {
-       "linkedin-posts-hunter-mcp": {
-         "command": "node",
-         "args": [
-           "/absolute/path/to/LinkedIn-Posts-Hunter-MCP-Server/build/index.js"
-         ],
-         "cwd": "/absolute/path/to/LinkedIn-Posts-Hunter-MCP-Server"
-       }
-     }
-   }
-   ```
-
-   **For Claude Desktop** (`claude_desktop_config.json`):
-   ```json
-   {
-     "mcpServers": {
-       "linkedin-posts-hunter-mcp": {
-         "command": "node",
-         "args": [
-           "/absolute/path/to/LinkedIn-Posts-Hunter-MCP-Server/build/index.js"
-         ],
-         "cwd": "/absolute/path/to/LinkedIn-Posts-Hunter-MCP-Server"
-       }
-     }
-   }
-   ```
-   
-   **⚠️ Important:** Replace `/absolute/path/to/LinkedIn-Posts-Hunter-MCP-Server` with your actual project path.
-
-3. **Restart your MCP client** to load the server.
+The database is `sql.js`, which holds the whole file in memory and writes it back
+wholesale. When two processes are running — the MCP server and the viewer — each
+would otherwise serve a stale snapshot and overwrite the other's rows on its next
+save. `store/connection.ts` fingerprints the file by size and mtime, reloads when
+another process has written, and records its own saves so it does not reload
+needlessly. Removing that check will silently lose data.
 
 ---
 
+## Attribution
 
-## 🎯 What You Can Do
+Derived from
+[LinkedIn-Posts-Hunter-MCP-Server](https://github.com/kevin-weitgenant/LinkedIn-Posts-Hunter-MCP-Server)
+by Kevin Weitgenant, used under the ISC licence.
 
-### Job Search Workflow Example
-
-1. **Authenticate with LinkedIn:**
-   ```
-   User: "Authenticate my LinkedIn account"
-   AI: Opens a browser for you to log in, saves credentials
-   ```
-
-2. **Search for opportunities:**
-   ```
-   User: "Search LinkedIn for 'Senior TypeScript Developer remote' jobs"
-   AI: Searches LinkedIn, extracts post details, saves to database
-   ```
-
-3. **Visual exploration:**
-   ```
-   User: "Open the post viewer"
-   AI: Launches React dashboard(where you can see the scraped posts) at http://localhost:5174
-   ```
-
-4. **Filter and manage:**
-   ```
-   User: "Remove posts that aren't about job opportunities"
-   AI: Reads database, filters and displays only job-related posts
-   
-   User: "Show only senior-level positions" 
-   AI: Queries database for posts containing "senior", "lead", "principal"
-   
-   User: "Show posts about React or Vue.js positions"
-   AI: Searches database and displays matching posts
-   ```
-
-5. **Track applications:**
-   ```
-   User: "Mark posts 5, 7, and 12 as applied"
-   AI: Updates the database and confirms
-   ```
-
-
-
-
-
----
-
-## 📁 Data Storage Locations
-
-All your LinkedIn data is stored locally on your computer in the following directories:
-
-### **Windows**
-- **Main data directory:** `%APPDATA%\linkedin-mcp\`
-
-
-### **macOS/Linux**
-- **Main data directory:** `~/.linkedin-mcp/`
-
-### **What's stored:**
-- **`linkedin.db`** - SQLite database containing all scraped posts, metadata, and your tracking data
-- **`auth.json`** - Your LinkedIn session cookies and authentication tokens
-- **`searches/`** - Search session data and temporary files
-
-### **Data Privacy:**
-- ✅ All data stays on your computer
-- ✅ No data is sent to external servers
-- ✅ You can delete the entire `linkedin-mcp` folder to remove all data
-- ✅ Database is standard SQLite format - you can open it with any SQLite browser
-
----
-
-
-
-## 🎨 React Dashboard Features
-
-The built-in web viewer (`start_viewer`) provides:
-
-- **🔄 Real-time Updates**: Filter state syncs between UI and MCP commands
-- **✅ Quick Actions**: Mark posts as applied directly from the UI
-- **🎴 Card View**: Visual cards with profile images and engagement metrics
-- **📊 Table View**: Sortable columns with all post metadata
-- **🔍 Filtering**: By keyword, date range, applied status, and IDs
-- **💅 Modern Design**: Built with React, TypeScript, TailwindCSS, and Vite
-
----
-
-
-
-## 📄 License
-
-ISC
-
----
-
-## 🤝 Contributing
-
-Contributions are welcome! Feel free to open issues or submit pull requests.
-
-## 🚀 Project Status
-
-This is an experimental project, quick and dirty.
-
-The scraping could definitely be optimized to be faster, the UI could be improved as well.
-
-But at its is, is already somewhat useful.
-
-Feel free to contribute.
-
----
-
-
-
-<div align="center">
- 
-</div>
+This fork reorganises the codebase around the intake pipeline, adds the
+relevance, agency and market screening described above, adds country and pay
+inference, replaces the saved flag with a triage verdict, renames the MCP tools,
+rebuilds the dashboard, and fixes the cross-process database clobbering.
+Licensed ISC, as the original.

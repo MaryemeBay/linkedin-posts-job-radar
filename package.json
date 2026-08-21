@@ -1,11 +1,11 @@
 {
-  "name": "linkedin-posts-hunter-mcp",
-  "version": "1.0.3",
-  "description": "LinkedIn MCP server with Playwright automation for authentication and post searching",
-  "main": "build/index.js",
+  "name": "vacancy-radar-mcp",
+  "version": "2.0.0",
+  "description": "MCP server that harvests employer job posts from LinkedIn, screens them by market and relevance, and tracks them in a local dashboard.",
+  "main": "build/main.js",
   "type": "module",
   "bin": {
-    "linkedin-posts-hunter-mcp": "build/index.js"
+    "vacancy-radar-mcp": "build/main.js"
   },
   "files": [
     "build/",
@@ -13,46 +13,36 @@
   ],
   "scripts": {
     "clean": "rimraf build",
-    "build": "npm run clean && tsc && npm run build-client && npm run copy-client",
-    "build-client": "cd src/client-vite && npm run build",
-    "copy-client": "cpx \"src/client-vite/dist/**/*\" build/client-vite/dist",
-    "pack": "npx @anthropic-ai/mcpb pack",
-    "mcpb": "npm run clean && npm run build && npm run pack",
-    "dev": "tsx src/index.ts",
-    "start": "node build/index.js",
+    "build": "npm run clean && tsc && npm run build-viewer && npm run copy-viewer",
+    "build-viewer": "cd src/viewer/app && npm run build",
+    "copy-viewer": "cpx \"src/viewer/app/dist/**/*\" build/viewer/web",
+    "dev": "tsx src/main.ts",
+    "start": "node build/main.js",
     "typecheck": "tsc -p tsconfig.json --noEmit",
-    "auth:login": "tsx scripts/auth-login-save.ts",
-    "auth:run": "tsx scripts/run-with-auth.ts",
-    "install:all": "npm install && cd src/client-vite && npm install && echo 'All dependencies(client vite included) installed successfully!'",
+    "setup": "npm install && cd src/viewer/app && npm install && echo \"Server and viewer dependencies installed.\"",
+    "viewer": "node scripts/serve-viewer.mjs",
+    "seed": "node scripts/seed-from-export.mjs",
+    "rederive": "node scripts/rederive-fields.mjs",
+    "harvest:probe": "tsx src/linkedin/harvest/dev-harness.ts",
+    "pack": "npx @anthropic-ai/mcpb pack",
+    "bundle": "npm run build && npm run pack",
     "prepublishOnly": "npm run build",
     "postinstall": "playwright install --with-deps chromium"
   },
   "keywords": [
     "mcp",
-    "AI",
-    "data analysis",
-    "react",
-    "scraping",
-    "linkedin",
-    "playwright",
-    "automation",
-    "job-search",
     "model-context-protocol",
-    "claude",
-    "cursor"
+    "linkedin",
+    "job-search",
+    "playwright",
+    "scraping",
+    "sqlite",
+    "react",
+    "claude"
   ],
   "author": {
-    "name": "Kevin Weitgenant",
-    "email": "kevin.weitgenant@gmail.com"
+    "email": "mb@kovalee.app"
   },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/kevin-weitgenant/LinkedIn-Posts-Hunter-MCP-Server.git"
-  },
-  "bugs": {
-    "url": "https://github.com/kevin-weitgenant/LinkedIn-Posts-Hunter-MCP-Server/issues"
-  },
-  "homepage": "https://github.com/kevin-weitgenant/LinkedIn-Posts-Hunter-MCP-Server#readme",
   "license": "ISC",
   "engines": {
     "node": ">=18.0.0"
@@ -77,5 +67,12 @@
     "rimraf": "^6.0.1",
     "tsx": "^4.20.6",
     "typescript": "^5.9.2"
-  }
+  },
+  "contributors": [
+    {
+      "name": "Kevin Weitgenant",
+      "url": "https://github.com/kevin-weitgenant",
+      "comment": "Original author of LinkedIn-Posts-Hunter-MCP-Server, which this project is derived from"
+    }
+  ]
 }
