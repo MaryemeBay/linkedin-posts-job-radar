@@ -44,7 +44,8 @@
     "claude"
   ],
   "author": {
-    "email": "mb@kovalee.app"
+    "name": "MaryemeBay",
+    "url": "https://github.com/MaryemeBay"
   },
   "license": "ISC",
   "engines": {

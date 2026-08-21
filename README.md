@@ -184,9 +184,9 @@ the post text automatically.
 </details>
 
 <details>
-<summary><b>Light theme</b> — follows your OS by default, toggle in the corner</summary>
+<summary><b>Dark theme</b> — follows your OS by default, toggle in the corner</summary>
 
-![Light theme](docs/dashboard-light.png)
+![Dark theme](docs/dashboard-dark.png)
 </details>
 
 ---
