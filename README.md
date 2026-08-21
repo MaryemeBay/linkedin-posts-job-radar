@@ -1,49 +1,99 @@
-# Vacancy Radar MCP
+# Vacancy Radar
 
-An MCP server for running a narrow, high-signal job search on LinkedIn.
+**Find real job openings on LinkedIn without the noise.**
 
-LinkedIn's own search returns everything: open roles, people announcing they are
-available, course ads, newsletter roundups, and the same staffing-agency repost
-twenty times over. Vacancy Radar harvests posts for your search terms and then
-**screens every one on the way into the database**, so what you browse is
-employer vacancies in the markets you care about — and nothing else.
+Ask your AI assistant to search LinkedIn. Vacancy Radar scrapes the results,
+throws away everything that isn't an employer hiring in a market you care
+about, and gives you a dashboard to sort what's left into **Ok**, **Maybe** and
+**Not interested**.
 
-Everything runs locally. Posts live in a SQLite file on your machine, the browser
-session is stored on disk, and no data leaves the computer.
+Everything stays on your machine. No accounts, no servers, no data leaving your
+laptop.
 
----
-
-## What it does
-
-**Harvest** — Signs in to LinkedIn with Playwright, keeps the session, and
-scrapes post results for a keyword query across as many pages as you ask for.
-
-**Screen** — Each harvested post passes three gates before it is stored:
-
-| Gate | Rejects |
-| --- | --- |
-| Relevance | Posts with no sign of an open role — commentary, roundups, course ads |
-| Author | First-person job-seeker posts, and staffing-agency reposts |
-| Market | Roles outside your allowed countries |
-
-What survives arrives **unrated**, waiting for a verdict.
-
-**Enrich** — Surviving posts get a **country** inferred from the post text and
-any **pay** the post quotes, both normalised into their own columns.
-
-**Triage** — A local React dashboard lists what got through. Rate each post
-**Ok**, **Maybe** or **Not interested**; the rating colours the card's accent
-rail, and a "Not interested" post dims until you hover it. Filter by verdict,
-market, keyword, pay and application status, in light or dark theme.
+![The Vacancy Radar dashboard](docs/dashboard.png)
 
 ---
 
-## Screening rules
+## Why
 
-### Market allowlist
+Search LinkedIn for "Senior Data Scientist" and you get open roles mixed in with
+people announcing they're available, course ads, newsletter roundups, and the
+same staffing-agency repost twenty times over — most of it in countries you
+can't work in.
 
-`src/intake/market-policy.ts` holds the list. Edit `ALLOWED_COUNTRIES` to change
-which markets are accepted:
+Vacancy Radar screens each post **before** it's saved, so you triage a short
+list instead of wading through hundreds:
+
+```
+Harvest complete: 9 new posts added, 3 duplicates skipped,
+12 rejected as outside allowed markets,
+18 rejected as non-vacancy or agency posts
+```
+
+---
+
+## Install
+
+You'll need [Node.js 18+](https://nodejs.org) and an MCP client such as Claude
+Code, Claude Desktop, or Cursor.
+
+**1. Clone and set up**
+
+```bash
+git clone https://github.com/MaryemeBay/linkedin-posts-job-radar.git
+cd linkedin-posts-job-radar
+npm run setup     # installs dependencies for the server and dashboard, plus Chromium
+npm run build
+```
+
+**2. Tell your MCP client about it**
+
+Use the absolute path to wherever you cloned it.
+
+<details>
+<summary><b>Claude Code</b></summary>
+
+```bash
+claude mcp add vacancy-radar -- node /absolute/path/to/linkedin-posts-job-radar/build/main.js
+```
+</details>
+
+<details>
+<summary><b>Claude Desktop</b> — <code>claude_desktop_config.json</code></summary>
+
+```json
+{
+  "mcpServers": {
+    "vacancy-radar": {
+      "command": "node",
+      "args": ["/absolute/path/to/linkedin-posts-job-radar/build/main.js"],
+      "cwd": "/absolute/path/to/linkedin-posts-job-radar"
+    }
+  }
+}
+```
+</details>
+
+<details>
+<summary><b>Cursor</b> — <code>mcp.json</code></summary>
+
+```json
+{
+  "mcpServers": {
+    "vacancy-radar": {
+      "command": "node",
+      "args": ["/absolute/path/to/linkedin-posts-job-radar/build/main.js"],
+      "cwd": "/absolute/path/to/linkedin-posts-job-radar"
+    }
+  }
+}
+```
+</details>
+
+**3. Restart your client, then set your markets**
+
+Open [`src/intake/market-policy.ts`](src/intake/market-policy.ts) and list the
+places you'd actually take a job:
 
 ```ts
 export const ALLOWED_COUNTRIES = [
@@ -54,184 +104,191 @@ export const ALLOWED_COUNTRIES = [
 ]
 ```
 
-A post is accepted when it names **any** allowed market, and rejected when it
-names countries and none of them is allowed. Posts whose location cannot be
-inferred are accepted — plenty of real listings state no location, and treating
-unknown as unwanted throws away real matches.
+Run `npm run build` after editing. Anything outside this list never reaches your
+database.
 
-Naming an unwanted country is not on its own disqualifying. A Paris role that
-mentions visa requirements for applicants from elsewhere is still a Paris role.
+---
+
+## Use it
+
+Talk to your assistant in plain language:
+
+> **"Log into my LinkedIn account"**
+> A browser window opens. Log in once — the session is saved locally, so you
+> won't be asked again.
+
+> **"Search LinkedIn for Senior Data Scientist roles in London"**
+> Harvests the results and reports what it kept and what it screened out.
+
+> **"Open the dashboard"**
+> Opens `localhost:7391`. Rate posts Ok / Maybe / Not interested.
+
+> **"Show me everything I marked Ok that quotes a salary"**
+> Filters the dashboard from the conversation.
+
+> **"Delete everything I marked Not interested"**
+
+### The dashboard
+
+Rate a post and its accent rail takes on that colour, so a long list stays
+readable at a glance. A "Not interested" card dims until you hover it. Clicking
+a rating a post already has clears it, so a mis-click needs one more click
+rather than a fourth button.
+
+`Applied` is tracked separately — the verdict is what you think of the role,
+`Applied` is whether you acted on it.
+
+Every post shows the **country** and any **pay** it quotes, both pulled out of
+the post text automatically.
+
+<details>
+<summary><b>Table view</b> — edit and sort every field</summary>
+
+![Table view](docs/table.png)
+</details>
+
+<details>
+<summary><b>Light theme</b> — follows your OS by default, toggle in the corner</summary>
+
+![Light theme](docs/dashboard-light.png)
+</details>
+
+---
+
+## What gets thrown away
+
+Three gates, applied as posts arrive:
+
+| Gate | Rejects |
+| --- | --- |
+| **Relevance** | Posts with no sign of an open role — commentary, roundups, course ads |
+| **Author** | "Open to work" posts, and staffing-agency reposts |
+| **Market** | Roles outside your allowed countries |
+
+**Relevance** looks for hiring intent broadly, because plenty of real listings
+never say "hiring" — `Lead Data Analyst opportunity at HelloFresh in London` is
+a job post.
+
+**Author** catches agencies two ways: wording like `our client`, `on behalf of`,
+`C2C` or `Outside IR35`, and titles like Recruitment Consultant or Executive
+Recruiter. Titles that exist on both sides — plain "Recruiter", "Talent
+Acquisition" — never reject on their own, and `Corporate Recruiter` is treated
+as in-house. An employer's own recruiter is exactly who you want to hear from.
+
+**Market** accepts a post that names any allowed country. Mentioning an
+unwanted one isn't disqualifying — a Paris role that mentions visa rules for
+applicants elsewhere is still a Paris role. Posts with no detectable location
+are kept, since plenty of real listings don't state one.
+
+> **Want contract roles?** `umbrella`, `Outside IR35` and `C2C` are treated as
+> agency signals. Remove them from `AGENCY_BODY` in
+> [`src/intake/relevance.ts`](src/intake/relevance.ts) to let contract work
+> through.
 
 ### Location detection
 
-`src/intake/location.ts` recognises ~105 countries by name and by city, in
-English, French, German, Spanish and Portuguese, plus bracketed ISO code lists
-such as `Remote EU (CZ/EE/FI/PL/ES/SE)`.
+Recognises around 105 countries by name and by city, in English, French, German,
+Spanish and Portuguese, plus code lists like `Remote EU (CZ/EE/FI/PL/ES/SE)`.
 
-An **explicit location line wins outright**. When a post says `📍 Location:
-London, UK`, `Lieu : Paris`, or `Based in Lisbon`, that line decides the country
-and the rest of the post is ignored. This matters: a post headed
-`📍 Islamabad, Pakistan` that mentions London further down is an Islamabad role,
-and taking the union of both would sneak it past a London-only filter.
+An explicit location line wins outright. When a post says `📍 Location: London,
+UK` or `Lieu : Paris`, that line decides — so a post headed
+`📍 Islamabad, Pakistan` that mentions London further down is correctly an
+Islamabad role, not a London one.
 
-Posts with no location line fall back to a scan of the whole text.
+### Pay detection
 
-### Relevance and agency detection
-
-`src/intake/relevance.ts`. Hiring intent is matched broadly, because plenty of
-real listings never use the word "hiring" — `Lead Data Analyst opportunity at
-HelloFresh in London` is a job post.
-
-Agency detection uses two signals:
-
-- **Wording** — `our client`, `on behalf of`, `confidential search`, `C2C`,
-  `W2`, `Outside IR35`, `umbrella`, `cabinet de recrutement`
-- **Author title** — Recruitment Consultant, Executive Recruiter, IT Recruiter,
-  Headhunter, Talent Sourcer, Staffing
-
-Titles that exist on both sides of the fence — plain "Recruiter", "Talent
-Acquisition", "People Partner" — never trigger a rejection on their own, and
-`Corporate Recruiter` is explicitly treated as in-house. An employer's own
-recruiter is exactly who you want to hear from.
-
-> **Contract roles are treated as agency.** `umbrella`, `Outside IR35` and `C2C`
-> almost always mark a third-party contract. If you want contract work, remove
-> those patterns from `AGENCY_BODY`.
-
-### Compensation parsing
-
-`src/intake/compensation.ts` classifies every currency figure by pay period and
-keeps it only when the amount is plausible for that period. That is what
-separates a `$2,000 welcome bonus` and `€12.50/day` meal vouchers from a real
-salary, and what keeps `$100/hour` while rejecting a bare `$100`. Funding
-rounds, ARR and follower counts are excluded by surrounding context.
+Each currency figure is classified by pay period and kept only if the amount
+makes sense for that period. That's what tells a real salary apart from a
+`$2,000 welcome bonus` or `€12.50/day` meal vouchers, and what keeps
+`$100/hour` while rejecting a bare `$100`.
 
 Handles `$128,470 - $208,770`, `96k€`, `£75k-£115k`, `110000USD-135000USD`,
-`USD 121125-163875/year`, `60,4K GBP/yr` (French decimal comma), `£830/day` and
-`$7,000/month`, normalising each to a single readable string.
+`60,4K GBP/yr` (French decimal comma), `£830/day` and `$7,000/month`.
 
 ---
 
-## Install
+## Your data
 
-Requires Node 18+.
-
-```bash
-npm run setup     # installs server and viewer dependencies, plus Chromium
-npm run build
-```
-
-Register the server with your MCP client:
-
-```json
-{
-  "mcpServers": {
-    "vacancy-radar": {
-      "command": "node",
-      "args": ["/absolute/path/to/vacancy-radar-mcp/build/main.js"],
-      "cwd": "/absolute/path/to/vacancy-radar-mcp"
-    }
-  }
-}
-```
-
-Restart the client, then ask it to authenticate. A browser window opens for you
-to log in once; the session is saved locally after that.
-
----
-
-## MCP tools
-
-| Tool | Purpose |
+| What | Where |
 | --- | --- |
-| `linkedin_session` | Log in, check session status, clear stored credentials |
-| `harvest_posts` | Harvest posts for a keyword query; reports how many were screened out and why |
-| `vacancies` | Read, count or delete vacancies — filter by keyword, market, pay, verdict or application status |
-| `dashboard_filters` | Drive the dashboard's filters from the conversation |
-| `open_dashboard` / `close_dashboard` | Run the dashboard on `localhost:7391` |
+| Harvested posts | `~/.linkedin-mcp/resources/linkedin.db` |
+| LinkedIn session | `~/.linkedin-mcp/auth.json` |
 
-`harvest_posts` reports its screening, so you can see what a query actually cost:
+Both live outside this repo and are never committed. Nothing is sent anywhere —
+the dashboard is a local server, and the only network traffic is Playwright
+talking to LinkedIn as your own browser would.
 
-```
-9 new posts added, 3 duplicates skipped, 12 rejected as outside allowed markets,
-18 rejected as non-vacancy or agency posts
-```
+To wipe everything: `rm -rf ~/.linkedin-mcp`
 
 ---
 
-## Triage model
+## Tools your assistant can call
 
-Each post carries one `verdict`: unrated, `yes` (Ok), `maybe`, or `no` (not
-interested). Clicking the rating a post already holds clears it, so a mis-click
-is undone with a second click rather than a fourth button.
+| Tool | What it does |
+| --- | --- |
+| `linkedin_session` | Log in, check the session, clear stored credentials |
+| `harvest_posts` | Search and store posts, reporting what was screened out |
+| `vacancies` | Read, count or delete — filter by keyword, market, pay, verdict, applied |
+| `dashboard_filters` | Change the dashboard's filters from the conversation |
+| `open_dashboard` / `close_dashboard` | Start and stop the dashboard |
 
-`applied` is tracked separately — a verdict is what you think of the role, and
-`applied` is whether you acted on it.
-
-This replaced an earlier binary "saved" flag. The `saved` column is still in the
-schema as the migration source — previously saved posts came through as `yes` —
-but nothing reads or writes it now.
-
-## Command line
+## Commands
 
 ```bash
-npm run viewer      # dashboard on :7391, without going through MCP
+npm run viewer      # dashboard on :7391, without going through your assistant
 npm run rederive    # recompute country and pay for stored posts
-npm run seed        # import posts from a scraped JSON export
+npm run seed        # import posts from a JSON export
+npm run build       # rebuild after changing any rule
 npm run typecheck
 ```
 
-`npm run rederive -- --all` re-infers every row rather than only empty values —
-use it after editing a detector.
+`npm run rederive -- --all` re-infers every post rather than only the blanks —
+run it after editing a detector.
 
-The dashboard serves on port **7391**. Set `VACANCY_RADAR_PORT` to move it:
+To move the dashboard off port 7391:
 
 ```bash
 VACANCY_RADAR_PORT=9090 npm run viewer
 ```
 
-When the MCP client launches the server, put it in that server's `env` block so
-`open_dashboard` uses the same port.
+When your MCP client launches the server, put `VACANCY_RADAR_PORT` in that
+server's `env` block so `open_dashboard` uses the same port.
 
 ---
 
-## Layout
+## Code layout
 
 ```
 src/
   main.ts               MCP server: tool schemas and dispatch
-  commands/             One module per MCP tool
+  commands/             One module per tool
   linkedin/
-    session/            Playwright login and credential storage
+    session/            Playwright login, credential storage
     harvest/            Search crawler, URL building, post parsing
   intake/               The screening pipeline
     ingest.ts             Applies every gate, then writes
     relevance.ts          Vacancy vs commentary vs agency
-    market-policy.ts      Country allowlist
+    market-policy.ts      Country allowlist  <- edit this
     location.ts           Country inference
     compensation.ts       Pay parsing
-  store/
-    connection.ts       SQLite handle, schema, migrations
-    posts-repository.ts Queries
-  viewer/
-    routes.ts           Dashboard HTTP API
-    handlers.ts
-    app/                React dashboard (separate Vite project)
-  platform/             Paths and persisted view state
-scripts/                Standalone maintenance scripts
+  store/                SQLite handle, schema, queries
+  viewer/               Dashboard API and React app
+  platform/             Paths, persisted filter state
+scripts/                Maintenance scripts
 ```
 
-Data lives in `~/.linkedin-mcp/`: `auth.json` for the session and
-`resources/linkedin.db` for posts.
+<details>
+<summary><b>A note for contributors: the database is held in memory</b></summary>
 
-### A note on concurrency
+The store is `sql.js`, which keeps the whole database in memory and writes it
+back wholesale. With two processes running — the MCP server and the dashboard —
+each would otherwise serve a stale snapshot and overwrite the other's rows on
+its next save.
 
-The database is `sql.js`, which holds the whole file in memory and writes it back
-wholesale. When two processes are running — the MCP server and the viewer — each
-would otherwise serve a stale snapshot and overwrite the other's rows on its next
-save. `store/connection.ts` fingerprints the file by size and mtime, reloads when
-another process has written, and records its own saves so it does not reload
-needlessly. Removing that check will silently lose data.
+`store/connection.ts` fingerprints the file by size and modification time,
+reloads when another process has written, and records its own saves so it
+doesn't reload needlessly. **Removing that check silently loses data.**
+</details>
 
 ---
 
@@ -242,9 +299,8 @@ Derived from
 by Kevin Weitgenant, used under the ISC licence.
 
 This fork reorganises the codebase around the intake pipeline, adds the
-relevance, agency and market screening described above, adds country and pay
-inference, replaces the saved flag with a triage verdict, renames the MCP tools,
-rebuilds the dashboard, and fixes the cross-process database clobbering.
+relevance, agency and market screening above, adds country and pay inference,
+replaces a saved flag with the triage verdict, renames the MCP tools, rebuilds
+the dashboard, and fixes cross-process database clobbering.
 
-Licensed ISC, as the original — see [LICENSE](LICENSE), which carries both
-copyright lines.
+Licensed ISC — see [LICENSE](LICENSE), which carries both copyright lines.
