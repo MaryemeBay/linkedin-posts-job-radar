@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="Vacancy Radar">
+  <title>Vacancy Radar</title>
+  <defs>
+    <linearGradient id="vr-bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#3b82f6"/>
+      <stop offset="1" stop-color="#8b5cf6"/>
+    </linearGradient>
+    <linearGradient id="vr-sweep" x1="0.5" y1="1" x2="0.15" y2="0">
+      <stop offset="0" stop-color="#ffffff" stop-opacity="0"/>
+      <stop offset="1" stop-color="#ffffff" stop-opacity="0.5"/>
+    </linearGradient>
+  </defs>
+
+  <rect width="64" height="64" rx="15" fill="url(#vr-bg)"/>
+
+  <!-- Range rings, centred on the operator. -->
+  <g fill="none" stroke="#ffffff" stroke-width="2">
+    <circle cx="32" cy="32" r="20" stroke-opacity="0.25"/>
+    <circle cx="32" cy="32" r="13" stroke-opacity="0.35"/>
+    <circle cx="32" cy="32" r="6" stroke-opacity="0.5"/>
+  </g>
+
+  <!-- Sweep trailing behind the beam, brightest at the beam itself. -->
+  <path d="M32 32 L11.6 41.5 A22.6 22.6 0 0 1 15.2 15.3 Z" fill="url(#vr-sweep)"/>
+
+  <!-- The beam. -->
+  <path d="M32 32 L15.2 15.3" stroke="#ffffff" stroke-width="2.6" stroke-linecap="round"/>
+
+  <!-- One contact, found out to the right: the single result worth keeping. -->
+  <circle cx="42.5" cy="25.5" r="3.6" fill="#ffffff"/>
+  <circle cx="42.5" cy="25.5" r="6.6" fill="none" stroke="#ffffff" stroke-opacity="0.42" stroke-width="1.5"/>
+</svg>

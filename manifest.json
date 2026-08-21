@@ -7,7 +7,7 @@
   "author": {
     "email": "mb@kovalee.app"
   },
-  "icon": "saitama-job-hunting.png",
+  "icon": "icon.png",
   "server": {
     "type": "node",
     "entry_point": "build/main.js",

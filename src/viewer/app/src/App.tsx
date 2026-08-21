@@ -381,9 +381,9 @@ function App() {
         <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-4 py-3 sm:px-6">
           <div className="flex min-w-0 items-center gap-3">
             <img
-              src="/saitama-job-hunting.png"
+              src="/logo.svg"
               alt=""
-              className="h-9 w-9 shrink-0 rounded-lg object-contain"
+              className="h-9 w-9 shrink-0"
             />
             <div className="min-w-0">
               <h1 className="truncate text-[0.95rem] font-semibold leading-tight text-ink">
