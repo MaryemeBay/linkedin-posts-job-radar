@@ -28,7 +28,7 @@ care about, and gives you a dashboard to sort what's left into **Ok**,
 Everything stays on your machine. No accounts, no servers, no data leaving your
 laptop.
 
-![The Linkedin Posts Job Radar dashboard](docs/dashboard.png)
+![The Linkedin Posts Job Radar dashboard, filtered to posts that quote pay](docs/dashboard.png)
 
 ---
 
