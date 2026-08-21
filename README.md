@@ -53,26 +53,17 @@ Harvest complete: 9 new posts added, 3 duplicates skipped,
 ## Install
 
 You'll need [Node.js 18+](https://nodejs.org) and an MCP client such as Claude
-Code, Claude Desktop, or Cursor.
+Code, Claude Desktop, or Cursor. Chromium downloads itself on first use.
 
-**1. Clone and set up**
+### Quickest: no clone
 
-```bash
-git clone https://github.com/MaryemeBay/linkedin-posts-job-radar.git
-cd linkedin-posts-job-radar
-npm run setup     # installs dependencies for the server and dashboard, plus Chromium
-npm run build
-```
+Point your client straight at the repo — npm fetches and builds it for you.
 
-**2. Tell your MCP client about it**
-
-Use the absolute path to wherever you cloned it.
-
-<details>
+<details open>
 <summary><b>Claude Code</b></summary>
 
 ```bash
-claude mcp add linkedin-posts-job-radar -- node /absolute/path/to/linkedin-posts-job-radar/build/main.js
+claude mcp add job-radar -- npx -y github:MaryemeBay/linkedin-posts-job-radar
 ```
 </details>
 
@@ -82,10 +73,9 @@ claude mcp add linkedin-posts-job-radar -- node /absolute/path/to/linkedin-posts
 ```json
 {
   "mcpServers": {
-    "linkedin-posts-job-radar": {
-      "command": "node",
-      "args": ["/absolute/path/to/linkedin-posts-job-radar/build/main.js"],
-      "cwd": "/absolute/path/to/linkedin-posts-job-radar"
+    "job-radar": {
+      "command": "npx",
+      "args": ["-y", "github:MaryemeBay/linkedin-posts-job-radar"]
     }
   }
 }
@@ -98,17 +88,45 @@ claude mcp add linkedin-posts-job-radar -- node /absolute/path/to/linkedin-posts
 ```json
 {
   "mcpServers": {
-    "linkedin-posts-job-radar": {
-      "command": "node",
-      "args": ["/absolute/path/to/linkedin-posts-job-radar/build/main.js"],
-      "cwd": "/absolute/path/to/linkedin-posts-job-radar"
+    "job-radar": {
+      "command": "npx",
+      "args": ["-y", "github:MaryemeBay/linkedin-posts-job-radar"]
     }
   }
 }
 ```
 </details>
 
-**3. Restart your client, then set your markets**
+The first start takes a couple of minutes while it builds and fetches Chromium;
+later starts are immediate.
+
+> Changing the screening rules needs the source, so clone if you want to tune
+> which markets are allowed.
+
+### Clone, to change the rules
+
+```bash
+git clone https://github.com/MaryemeBay/linkedin-posts-job-radar.git
+cd linkedin-posts-job-radar
+npm run setup
+npm run build
+```
+
+Register it with the absolute path to where you cloned it:
+
+```bash
+claude mcp add job-radar -- node /absolute/path/to/linkedin-posts-job-radar/build/main.js
+```
+
+For Claude Desktop or Cursor use the JSON above, with `"command": "node"` and
+`"args": ["/absolute/path/.../build/main.js"]`.
+
+### As a bundle
+
+`npm run bundle` produces a `.mcpb` file that clients supporting MCP bundles can
+install directly, with no Node tooling needed on the installing machine.
+
+### Set your markets
 
 Open [`src/intake/market-policy.ts`](src/intake/market-policy.ts) and list the
 places you'd actually take a job:
@@ -122,8 +140,8 @@ export const ALLOWED_COUNTRIES = [
 ]
 ```
 
-Run `npm run build` after editing. Anything outside this list never reaches your
-database.
+Only needed if you cloned. Run `npm run build` after editing — anything outside
+this list never reaches your database.
 
 ---
 

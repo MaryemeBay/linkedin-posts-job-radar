@@ -12,13 +12,18 @@ import { handleHarvest } from './commands/harvest.js';
 import { handleVacancies } from './commands/posts.js';
 import { handleDashboardFilters } from './commands/view-filters.js';
 import { startViewer, stopViewer } from './commands/viewer.js';
+import { createRequire } from 'node:module';
 import { closeDatabase } from './store/connection.js';
+
+// Report the installed version rather than a hardcoded one, which had drifted
+// from package.json.
+const { version } = createRequire(import.meta.url)('../package.json');
 
 // Initialize MCP server
 const server = new Server(
   {
     name: "linkedin-posts-job-radar",
-    version: "1.0.0",
+    version,
   },
   {
     capabilities: {
