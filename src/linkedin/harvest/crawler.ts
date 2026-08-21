@@ -2,7 +2,8 @@
  * Core LinkedIn search functionality (pure, no database operations)
  */
 
-import { chromium, Browser, BrowserContext, Page } from 'playwright';
+import { Browser, BrowserContext, Page } from 'playwright';
+import { launchChromium } from '../chromium.js';
 import { loadAuthData, isAuthDataValid } from '../session/credential-store.js';
 import { buildSearchUrl, buildPostUrl } from './query-url.js';
 import { extractPostContent } from './post-parser.js';
@@ -177,7 +178,7 @@ export const searchLinkedInPosts = async (
   // Launch browser with saved auth
   // Use headless mode from options (default: false for visibility)
   const { headless = false } = options;
-  const browser: Browser = await chromium.launch({ headless });
+  const browser: Browser = await launchChromium({ headless });
   const context: BrowserContext = await browser.newContext({ storageState: authData });
   
   try {

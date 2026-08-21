@@ -1,4 +1,5 @@
-import { chromium, Browser, BrowserContext, Page } from "playwright";
+import { Browser, BrowserContext, Page } from "playwright";
+import { launchChromium } from "../chromium.js";
 import { saveAuthData } from './credential-store.js';
 
 export interface AuthBrowserSession {
@@ -11,7 +12,7 @@ export interface AuthBrowserSession {
  * Launch browser for LinkedIn authentication
  */
 export const launchAuthBrowser = async (): Promise<AuthBrowserSession> => {
-  const browser = await chromium.launch({ headless: false });
+  const browser = await launchChromium({ headless: false });
   const context = await browser.newContext();
   const page = await context.newPage();
 
