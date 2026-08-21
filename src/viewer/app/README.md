@@ -1,4 +1,4 @@
-# Vacancy Radar viewer
+# Linkedin Posts Job Radar viewer
 
 The React dashboard served by the `start_viewer` MCP tool. A separate Vite
 project, built to `dist/` and copied into `build/viewer/web` by the root

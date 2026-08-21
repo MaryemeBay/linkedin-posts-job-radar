@@ -387,7 +387,7 @@ function App() {
             />
             <div className="min-w-0">
               <h1 className="truncate text-[0.95rem] font-semibold leading-tight text-ink">
-                Vacancy Radar
+                Linkedin Posts Job Radar
               </h1>
               <p className="truncate text-xs text-faint">
                 Triage the vacancies your searches brought in

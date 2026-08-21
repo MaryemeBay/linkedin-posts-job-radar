@@ -1,5 +1,5 @@
 {
-  "name": "vacancy-radar-viewer",
+  "name": "linkedin-posts-job-radar-viewer",
   "private": true,
   "version": "0.0.0",
   "type": "module",
@@ -25,5 +25,5 @@
     "typescript": "^5.6.3",
     "vite": "^6.0.3"
   },
-  "description": "React dashboard for Vacancy Radar MCP"
+  "description": "React dashboard for Linkedin Posts Job Radar MCP"
 }

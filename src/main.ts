@@ -17,7 +17,7 @@ import { closeDatabase } from './store/connection.js';
 // Initialize MCP server
 const server = new Server(
   {
-    name: "vacancy-radar",
+    name: "linkedin-posts-job-radar",
     version: "1.0.0",
   },
   {

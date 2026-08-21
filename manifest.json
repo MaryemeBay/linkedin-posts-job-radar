@@ -1,9 +1,9 @@
 {
   "manifest_version": "0.2",
-  "name": "vacancy-radar-mcp",
+  "name": "linkedin-posts-job-radar-mcp",
   "version": "2.0.0",
   "description": "Harvest employer job posts from LinkedIn, screen them by market and relevance, and track them in a local dashboard.",
-  "long_description": "Vacancy Radar is a Model Context Protocol server for running a targeted job search on LinkedIn. It signs in with Playwright and keeps the session locally, harvests posts for your search terms, and screens each one on the way into the database: posts that are not an employer advertising an open role are dropped, as are staffing-agency reposts and roles outside the markets you allow. Surviving posts are enriched with an inferred country and any pay the post quotes, stored in a local SQLite file, and browsed through a React dashboard with filtering by market, pay, keyword and application status. Everything stays on your machine.",
+  "long_description": "Linkedin Posts Job Radar is a Model Context Protocol server for running a targeted job search on LinkedIn. It signs in with Playwright and keeps the session locally, harvests posts for your search terms, and screens each one on the way into the database: posts that are not an employer advertising an open role are dropped, as are staffing-agency reposts and roles outside the markets you allow. Surviving posts are enriched with an inferred country and any pay the post quotes, stored in a local SQLite file, and browsed through a React dashboard with filtering by market, pay, keyword and application status. Everything stays on your machine.",
   "author": {
     "email": "mb@kovalee.app"
   },

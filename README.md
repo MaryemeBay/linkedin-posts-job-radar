@@ -2,7 +2,7 @@
 
 **Find real job openings on LinkedIn without the noise.**
 
-Ask your AI assistant to search LinkedIn. Vacancy Radar scrapes the results,
+Ask your AI assistant to search LinkedIn. Linkedin Posts Job Radar scrapes the results,
 throws away everything that isn't an employer hiring in a market you care
 about, and gives you a dashboard to sort what's left into **Ok**, **Maybe** and
 **Not interested**.
@@ -10,7 +10,7 @@ about, and gives you a dashboard to sort what's left into **Ok**, **Maybe** and
 Everything stays on your machine. No accounts, no servers, no data leaving your
 laptop.
 
-![The Vacancy Radar dashboard](docs/dashboard.png)
+![The Linkedin Posts Job Radar dashboard](docs/dashboard.png)
 
 ---
 
@@ -21,7 +21,7 @@ people announcing they're available, course ads, newsletter roundups, and the
 same staffing-agency repost twenty times over — most of it in countries you
 can't work in.
 
-Vacancy Radar screens each post **before** it's saved, so you triage a short
+Linkedin Posts Job Radar screens each post **before** it's saved, so you triage a short
 list instead of wading through hundreds:
 
 ```
@@ -54,7 +54,7 @@ Use the absolute path to wherever you cloned it.
 <summary><b>Claude Code</b></summary>
 
 ```bash
-claude mcp add vacancy-radar -- node /absolute/path/to/linkedin-posts-job-radar/build/main.js
+claude mcp add linkedin-posts-job-radar -- node /absolute/path/to/linkedin-posts-job-radar/build/main.js
 ```
 </details>
 
@@ -64,7 +64,7 @@ claude mcp add vacancy-radar -- node /absolute/path/to/linkedin-posts-job-radar/
 ```json
 {
   "mcpServers": {
-    "vacancy-radar": {
+    "linkedin-posts-job-radar": {
       "command": "node",
       "args": ["/absolute/path/to/linkedin-posts-job-radar/build/main.js"],
       "cwd": "/absolute/path/to/linkedin-posts-job-radar"
@@ -80,7 +80,7 @@ claude mcp add vacancy-radar -- node /absolute/path/to/linkedin-posts-job-radar/
 ```json
 {
   "mcpServers": {
-    "vacancy-radar": {
+    "linkedin-posts-job-radar": {
       "command": "node",
       "args": ["/absolute/path/to/linkedin-posts-job-radar/build/main.js"],
       "cwd": "/absolute/path/to/linkedin-posts-job-radar"
@@ -248,10 +248,10 @@ run it after editing a detector.
 To move the dashboard off port 7391:
 
 ```bash
-VACANCY_RADAR_PORT=9090 npm run viewer
+JOB_RADAR_PORT=9090 npm run viewer
 ```
 
-When your MCP client launches the server, put `VACANCY_RADAR_PORT` in that
+When your MCP client launches the server, put `JOB_RADAR_PORT` in that
 server's `env` block so `open_dashboard` uses the same port.
 
 ---

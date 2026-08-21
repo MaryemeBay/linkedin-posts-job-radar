@@ -1,11 +1,11 @@
 {
-  "name": "vacancy-radar-mcp",
+  "name": "linkedin-posts-job-radar-mcp",
   "version": "2.0.0",
   "description": "MCP server that harvests employer job posts from LinkedIn, screens them by market and relevance, and tracks them in a local dashboard.",
   "main": "build/main.js",
   "type": "module",
   "bin": {
-    "vacancy-radar-mcp": "build/main.js"
+    "linkedin-posts-job-radar-mcp": "build/main.js"
   },
   "files": [
     "build/",

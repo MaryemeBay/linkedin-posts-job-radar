@@ -24,21 +24,21 @@ let activeViewer: {
   url: string;
 } | null = null;
 
-/** Default dashboard port. Override with VACANCY_RADAR_PORT. */
+/** Default dashboard port. Override with JOB_RADAR_PORT. */
 const DEFAULT_PORT = 7391;
 
 /**
- * The port to serve the dashboard on. Reads VACANCY_RADAR_PORT so the port can
+ * The port to serve the dashboard on. Reads JOB_RADAR_PORT so the port can
  * be changed without editing code - useful when something else already holds it.
  */
 function resolvePort(): number {
-  const configured = process.env.VACANCY_RADAR_PORT;
+  const configured = process.env.JOB_RADAR_PORT;
   if (!configured) return DEFAULT_PORT;
 
   const parsed = Number(configured);
   if (!Number.isInteger(parsed) || parsed < 1 || parsed > 65535) {
     throw new Error(
-      `VACANCY_RADAR_PORT must be an integer between 1 and 65535, got "${configured}"`
+      `JOB_RADAR_PORT must be an integer between 1 and 65535, got "${configured}"`
     );
   }
   return parsed;
@@ -101,7 +101,7 @@ export async function startViewer(): Promise<ViewerResult> {
     server.on('error', (error: Error & { code?: string }) => {
       if (error.code === 'EADDRINUSE') {
         reject(new Error(
-          `Port ${PORT} is already in use. Set VACANCY_RADAR_PORT to a free port and try again.`
+          `Port ${PORT} is already in use. Set JOB_RADAR_PORT to a free port and try again.`
         ));
         return;
       }
