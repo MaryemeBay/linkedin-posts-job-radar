@@ -53,6 +53,7 @@ function App() {
   const [verdictFilter, setVerdictFilter] = useState<VerdictFilterType>('all')
   const [payFilter, setPayFilter] = useState<PayFilterType>('all')
   const [countryFilter, setCountryFilter] = useState('')
+  const [markets, setMarkets] = useState<string[]>([])
   const [loadingStates, setLoadingStates] = useState<Record<number, boolean>>({})
   const [cardErrorMessage, setCardErrorMessage] = useState<string | null>(null)
   
@@ -188,21 +189,24 @@ function App() {
     )
   }, [posts])
 
-  // Memoize unique countries - country holds a comma-separated list per post
+  // Markets to offer in the filter, with the number of posts in each. country
+  // holds every country a post mentions, so only the screened markets are
+  // offered, and only those some post is actually in.
   const uniqueCountries = useMemo(() => {
-    const countries = new Set<string>()
+    const counts = new Map<string, number>()
     posts.forEach(post => {
       ;(post.country || '').split(',').forEach(c => {
         const trimmed = c.trim()
         if (trimmed) {
-          countries.add(trimmed)
+          counts.set(trimmed, (counts.get(trimmed) ?? 0) + 1)
         }
       })
     })
-    return Array.from(countries).sort((a, b) =>
-      a.toLowerCase().localeCompare(b.toLowerCase())
-    )
-  }, [posts])
+    return markets
+      .filter(market => counts.has(market))
+      .map(market => ({ name: market, count: counts.get(market) ?? 0 }))
+      .sort((a, b) => a.name.toLowerCase().localeCompare(b.name.toLowerCase()))
+  }, [posts, markets])
 
   // Fetch posts from API
   const fetchPosts = async () => {
@@ -226,6 +230,14 @@ function App() {
     fetchPosts()
     const interval = setInterval(fetchPosts, 3000)
     return () => clearInterval(interval)
+  }, [])
+
+  // Changes only when market-policy.ts is edited, so fetched once, not polled.
+  useEffect(() => {
+    fetch('/api/markets')
+      .then(response => (response.ok ? response.json() : []))
+      .then(setMarkets)
+      .catch(() => setMarkets([])) // leaves the filter at "All markets"
   }, [])
 
   // Fetch filter state from API

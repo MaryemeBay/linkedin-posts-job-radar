@@ -11,8 +11,7 @@ console.log('📝 Note: This test uses the core function without database writes
 // Test using the core function directly (no database operations)
 searchLinkedInPosts(
   '"ai engineering" AND "junior" AND "remote"',
-  2,
-  { concurrency: 8 }
+  2
 )
   .then(results => {
     console.log('\n✅ Test completed!');

@@ -10,6 +10,7 @@ import {
   setVerdict
 } from '../store/posts-repository.js';
 import { getScreenshotsPath } from '../platform/workspace-paths.js';
+import { ALLOWED_COUNTRIES } from '../intake/market-policy.js';
 import { 
   getFilterState, 
   updateFilterState, 
@@ -28,6 +29,17 @@ export async function handleGetAllPosts(req: Request, res: Response): Promise<vo
   } catch (error) {
     res.status(500).json({ error: 'Failed to load posts from database' });
   }
+}
+
+/**
+ * GET /api/markets - Markets posts are screened against
+ *
+ * The dashboard filters on these rather than on every country its posts mention:
+ * detectCountries() reports each country named anywhere in a post, so a London
+ * role listing visa rules for eight others used to add eight one-post entries.
+ */
+export function handleGetMarkets(_req: Request, res: Response): void {
+  res.json(ALLOWED_COUNTRIES);
 }
 
 /**

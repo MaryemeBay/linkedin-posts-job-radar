@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import {
   handleGetAllPosts,
+  handleGetMarkets,
   handleGetSinglePost,
   handleBulkUpdatePosts,
   handleDeletePost,
@@ -20,6 +21,7 @@ export function createApiRouter(): Router {
   
   // Post routes
   router.get('/posts', handleGetAllPosts);
+  router.get('/markets', handleGetMarkets);
   router.get('/posts/:id', handleGetSinglePost);
   router.post('/posts/bulk-update', handleBulkUpdatePosts);
   router.delete('/posts/:id', handleDeletePost);

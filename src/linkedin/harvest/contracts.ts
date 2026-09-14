@@ -20,7 +20,6 @@ export interface PostResult {
 }
 
 export interface SearchOptions {
-  concurrency?: number;
   headless?: boolean;
 }
 
