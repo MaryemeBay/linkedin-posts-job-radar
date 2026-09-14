@@ -14,7 +14,7 @@ interface FilterViewProps {
   uniqueKeywords: string[]
   countryFilter: string
   setCountryFilter: (value: string) => void
-  uniqueCountries: string[]
+  uniqueCountries: { name: string; count: number }[]
   onReset: () => void
 }
 
@@ -135,12 +135,12 @@ export const FilterView: React.FC<FilterViewProps> = ({
             {/* A selected market whose last post was deleted has no option left
                 to render, which would blank the select while still filtering
                 everything out - keep it listed instead. */}
-            {countryFilter && !uniqueCountries.includes(countryFilter) && (
+            {countryFilter && !uniqueCountries.some(c => c.name === countryFilter) && (
               <option value={countryFilter}>{countryFilter} (no posts)</option>
             )}
             {uniqueCountries.map(country => (
-              <option key={country} value={country}>
-                {country}
+              <option key={country.name} value={country.name}>
+                {country.name} ({country.count})
               </option>
             ))}
           </select>

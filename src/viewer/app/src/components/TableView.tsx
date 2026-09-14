@@ -415,53 +415,55 @@ export function TableView({ posts, onPostUpdate, onPostDelete }: TableViewProps)
       )}
 
       <div className="overflow-x-auto rounded-xl border border-line">
-        <table className="w-full table-fixed text-left text-sm text-muted">
-          <thead className="sticky top-0 z-10 bg-raised text-xs uppercase tracking-wider text-muted">
-            {table.getHeaderGroups().map(headerGroup => (
-              <tr key={headerGroup.id}>
-                {headerGroup.headers.map(header => (
-                  <th
-                    key={header.id}
-                    scope="col"
-                    className="cursor-pointer select-none px-5 py-3 font-semibold transition-colors hover:text-ink"
-                    style={{ 
-                      width: header.getSize(),
-                      maxWidth: header.getSize() 
-                    }}
-                    onClick={header.column.getToggleSortingHandler()}
-                  >
-                    <div className="flex items-center">
-                      {flexRender(header.column.columnDef.header, header.getContext())}
-                      <span className="ml-2">
-                        {{
-                          asc: '🔼',
-                          desc: '🔽'
-                        }[header.column.getIsSorted() as string] ?? null}
-                      </span>
-                    </div>
-                  </th>
-                ))}
-              </tr>
-            ))}
-          </thead>
-          <tbody>
-            {table.getRowModel().rows.map(row => (
-              <tr
-                key={row.id}
-                className={`border-b border-line transition-colors last:border-0
-                            hover:bg-raised/60 ${
-                  editingId === row.original.id ? 'bg-brand-soft' : 'bg-surface'
-                }`}
-              >
-                {row.getVisibleCells().map(cell => (
-                  <td key={cell.id} className="px-5 py-4 align-top">
-                    {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                  </td>
-                ))}
-              </tr>
-            ))}
-          </tbody>
-        </table>
+        <div className="max-h-[70vh] overflow-y-auto">
+          <table className="w-full table-fixed text-left text-sm text-muted">
+            <thead className="sticky top-0 z-10 bg-raised text-xs uppercase tracking-wider text-muted">
+              {table.getHeaderGroups().map(headerGroup => (
+                <tr key={headerGroup.id}>
+                  {headerGroup.headers.map(header => (
+                    <th
+                      key={header.id}
+                      scope="col"
+                      className="cursor-pointer select-none px-5 py-3 font-semibold transition-colors hover:text-ink"
+                      style={{ 
+                        width: header.getSize(),
+                        maxWidth: header.getSize() 
+                      }}
+                      onClick={header.column.getToggleSortingHandler()}
+                    >
+                      <div className="flex items-center">
+                        {flexRender(header.column.columnDef.header, header.getContext())}
+                        <span className="ml-2">
+                          {{
+                            asc: '🔼',
+                            desc: '🔽'
+                          }[header.column.getIsSorted() as string] ?? null}
+                        </span>
+                      </div>
+                    </th>
+                  ))}
+                </tr>
+              ))}
+            </thead>
+            <tbody>
+              {table.getRowModel().rows.map(row => (
+                <tr
+                  key={row.id}
+                  className={`border-b border-line transition-colors last:border-0
+                              hover:bg-raised/60 ${
+                    editingId === row.original.id ? 'bg-brand-soft' : 'bg-surface'
+                  }`}
+                >
+                  {row.getVisibleCells().map(cell => (
+                    <td key={cell.id} className="px-5 py-4 align-top">
+                      {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                    </td>
+                  ))}
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
   )

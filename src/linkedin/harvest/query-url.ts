@@ -11,12 +11,5 @@ export const buildSearchUrl = (keywords: string): string => {
   return `https://www.linkedin.com/search/results/content/?datePosted=%22past-month%22&keywords=${encodedKeywords}&origin=FACETED_SEARCH&sortBy=%22relevance%22`;
 };
 
-/**
- * Build LinkedIn post URL from URN
- */
-export const buildPostUrl = (urn: string): string => {
-  return `https://www.linkedin.com/feed/update/${urn}/`;
-};
-
 
 
